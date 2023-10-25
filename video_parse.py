@@ -83,7 +83,7 @@ while frames_captured < total_frames_to_capture:
                 current_bbox = [x1, y1, x2, y2]
                 if cls_idx in previous_bboxes:
                     dist = np.linalg.norm(np.array(previous_bboxes[cls_idx]) - np.array(current_bbox))
-                    if dist < 50:
+                    if dist < 50: # modify if needed (maybe make this metric relative to size of frame?)
                         stability_counts[cls_idx] = stability_counts.get(cls_idx, 0) + 1
                 else:
                     stability_counts[cls_idx] = 0
