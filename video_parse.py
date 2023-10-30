@@ -47,7 +47,7 @@ TRASH_CLASS_IDS = [39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 5
 
 # load yolov8
 model = YOLO('yolov8n.pt')
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 total_frames_to_capture = fps * 5
@@ -92,7 +92,7 @@ while frames_captured < total_frames_to_capture:
 
                 if stability_counts.get(cls_idx, 0) > 5:
                     object_name = OBJECT_NAMES[cls_idx]
-                    cv2.imwrite(f"stable_frame_{object_name}.jpg", frame)
+                    cv2.imwrite(f"./test_images/stable_frame_{object_name}.jpg", frame)
                     cap.release()
                     cv2.destroyAllWindows()
                     exit()  # terminate when stable frame detected
