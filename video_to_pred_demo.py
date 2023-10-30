@@ -103,11 +103,11 @@ def detect_trash():
                     if stability_counts.get(cls_idx, 0) > 5:
                         object_name = OBJECT_NAMES[cls_idx]
                         cropped_frame = frame[y1:y2, x1:x2]  # Crop the image to the bounding box
-                        saved_frame_path = f"stable_frame_{object_name}.jpg"
+                        saved_frame_path = f"./test_images/stable_frame_{object_name}.jpg"
                         cv2.imwrite(saved_frame_path, cropped_frame)
                         cap.release()
                         cv2.destroyAllWindows()
-                        return saved_frame_path, cropped_frame  # Return path of saved frame
+                        return saved_frame_path, cropped_frame, object_name  # Return path of saved frame
         
         cv2.imshow("Frame", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -117,7 +117,7 @@ def detect_trash():
 
     cap.release()
     cv2.destroyAllWindows()
-    return saved_frame_path, None
+    return saved_frame_path, None, None
 
 def load_model(model_name, num_classes, checkpoint_path):
     model = EfficientNet.from_pretrained(model_name, num_classes=num_classes)
@@ -142,7 +142,7 @@ def predict_image(image, model, device):
     confidence = prob[0][index].item()
     return index, confidence
 
-def display_result(cropped_frame, predicted_class, confidence):
+def display_result(cropped_frame, predicted_class, object_name, confidence):
     app = QApplication([])
     
     # Convert the OpenCV image format (BGR) to QImage (RGB)
@@ -163,7 +163,7 @@ def display_result(cropped_frame, predicted_class, confidence):
     layout.addWidget(img_label)
 
     # Adding result below the image
-    result_label = QLabel(f"Predicted Class: {predicted_class}\nConfidence: {confidence:.2f}")
+    result_label = QLabel(f"Predicted Trash Class: {predicted_class}\nPredicted Object: {object_name}")
     layout.addWidget(result_label)
 
     # Quit button
@@ -176,18 +176,18 @@ def display_result(cropped_frame, predicted_class, confidence):
     
     app.exec_()
 
-def predict_and_display(model, cropped_frame, device="cpu"):
+def predict_and_display(model, cropped_frame, object_name, device="cpu"):
     image = Image.fromarray(cv2.cvtColor(cropped_frame, cv2.COLOR_BGR2RGB))
     index, confidence = predict_image(image, model, device)
-    classes = ['Bio', 'Glass', 'Metals-and-plastics', 'Non-recyclable', 'Paper']
+    classes = ['Bio', 'Glass', 'Metals and Plastics', 'Non-recyclable', 'Paper']
     predicted_class = classes[index]
     # Convert the cropped frame to a temporary file path for display
     temp_path = "./test_images/temp_cropped_frame.jpg"
     cv2.imwrite(temp_path, cropped_frame)
-    display_result(cropped_frame, predicted_class, confidence)
+    display_result(cropped_frame, predicted_class, object_name, confidence)
 
 if __name__ == '__main__':
     model = load_model(model_name='efficientnet-b2', num_classes=5, checkpoint_path='./classifier/lightning_logs/version_0/checkpoints/effnet.ckpt')
-    detected_frame_path, detected_cropped_frame = detect_trash()
+    detected_frame_path, detected_cropped_frame, object_name = detect_trash()
     if detected_frame_path:
-        predict_and_display(model, detected_cropped_frame, device="cpu")
+        predict_and_display(model, detected_cropped_frame, object_name, device="cpu")
