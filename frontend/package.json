@@ -1,5 +1,5 @@
 {
-  "name": "binsight-frontend",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,16 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/next-js": "^2.1.5",
+    "@chakra-ui/react": "^2.8.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "framer-motion": "^10.16.4",
+    "next": "14.0.1",
+    "node": "^18.14.0",
     "react": "^18",
-    "react-dom": "^18",
-    "next": "14.0.1"
+    "react-camera-pro": "^1.3.0",
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@chakra-ui/cli": "^2.4.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "14.0.1"
+    "eslint-config-next": "14.0.1",
+    "typescript": "^5"
   }
 }
