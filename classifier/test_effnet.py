@@ -43,20 +43,21 @@ def get_args_parser():
     parser.add_argument(
         '--data_img',
         help='path to base directory with data',
-        default='/data/yucheng/AI_System/Dataset/WasteSorting/test')
+        default='/data/yucheng/AI_System/Dataset/WasteSorting/re-split/test')
     parser.add_argument('--out', help='path to result',
-                        default='/data/yucheng/AI_System/Reference/detect-waste/classifier/lightning_logs/version_1/', type=str)
+                        default='/data/yucheng/AI_System/Reference/detect-waste/classifier/lightning_logs/version_2/', type=str)
     parser.add_argument(
         '--model_name', default='efficientnet-b2', type=str,
         help='Name of model to train (default: "efficientnet-b0)"')
     parser.add_argument(
-        '--num-classes', type=int, default=3, metavar='NUM',
+        '--num-classes', type=int, default=4, metavar='NUM',
         help='number of classes to classify (default: 7)')
     parser.add_argument(
         '--classes', type=list, 
         # default = ['Bio', 'Glass', 'Metals-and-plastics',
         #         'Non-recyclable', 'Paper']
-        default = ['compost', 'recycle', 'trash']
+        # default = ['compost', 'recycle', 'trash']
+        default = ['compost', 'paper', 'recycle', 'trash']
         , 
         help='number of classes to classify (default: 7)')
     
@@ -64,7 +65,7 @@ def get_args_parser():
     parser.add_argument(
         '--checkpoint',
         help='path to directory to the saved checkpoint',
-        default='/data/yucheng/AI_System/Reference/detect-waste/classifier/lightning_logs/version_1/checkpoints/epoch=14_val_acc=0.8525.ckpt')
+        default='/data/yucheng/AI_System/BinSight/classifier/lightning_logs/version_2/checkpoints/epoch=14_val_acc=0.8923.ckpt')
     
     parser.add_argument('--name', default='test.png',
                         help='path to save test images', type=str)
