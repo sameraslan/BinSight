@@ -5,15 +5,16 @@ import requests
 from io import BytesIO
 from PIL import Image
 
-image_path = '/data/yucheng/AI_System/BinSight/classifier/test.jpg'
+image_path = './test.jpg'
 image = Image.open(image_path)
 
 image_io = BytesIO()
 image.save(image_io, format='JPEG')
 image_io.seek(0)
 
-url = 'http://127.0.0.1:5000/predict'
-# url = 'http://10.203.124.128:5000/predict'
+url = 'http://127.0.0.1:1117/predict'
+# url = 'http://10.203.124.128:1117/predict'  # Johnson's laptop
+# url = 'http://10.99.68.67:1117/predict'  # Server
 files = {'file': ('image.jpg', image_io, 'image/jpeg')}
 response = requests.post(url, files=files)
 

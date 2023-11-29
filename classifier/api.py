@@ -39,10 +39,10 @@ def get_args_parser():
     parser.add_argument(
         '--checkpoint',
         help='path to directory to the saved checkpoint',
-        default='/data/yucheng/AI_System/BinSight/classifier/lightning_logs/version_2/checkpoints/epoch=14_val_acc=0.8923.ckpt')
+        default='./lightning_logs/version_2/checkpoints/epoch=14_val_acc=0.8923.ckpt')
     
     parser.add_argument('--device', help='specify device to use',
-                        default="cuda", type=str)
+                        default="cpu", type=str)
     
     
     return parser
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     model = EfficientNet.from_pretrained(
                 args.model_name,
                 num_classes=args.num_classes)
-    checkpoint = torch.load(args.checkpoint)
+    checkpoint = torch.load(args.checkpoint, map_location=args.device)
     new_checkpoint = {}
     for k, v in checkpoint['state_dict'].items():
         new_checkpoint[k.replace('efficient_net.', '')] = v
@@ -84,4 +84,4 @@ if __name__ == '__main__':
                                                 ])
     to_pil = transforms.ToPILImage()
 
-    app.run(debug=True)
+    app.run(debug=True, port=1117)
