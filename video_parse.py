@@ -24,7 +24,7 @@ OBJECT_NAMES = {
 
 # items not considered as trash
 NOT_TRASH_CLASS_IDS = {
-    'person': [0],
+    # 'person': [0],
     'vehicles': [1, 2, 3, 4, 5, 6, 7, 8],
     'street_objects': [9, 10, 11, 12, 13],
     'animals': [14, 15, 16, 17, 18, 19, 20, 21, 22, 23],

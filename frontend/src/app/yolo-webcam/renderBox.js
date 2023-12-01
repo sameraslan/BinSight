@@ -11,7 +11,6 @@ function xywh2xyxy(x){
 }
 
 export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, classes_data) => {
-
   const ctx = canvasRef.current.getContext("2d");
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
@@ -22,15 +21,30 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
   ctx.textBaseline = "top";
 
   for (let i = 0; i < scores_data.length; ++i) {
-    //console.log('scores_data[i]: ', scores_data[i])
     if (scores_data[i] > threshold) {
+      const canvasElement = canvasRef.current;
+      const model_dim = [canvasElement.height, canvasElement.width];
+
       const klass = labels[classes_data[i]];
       const score = (scores_data[i] * 100).toFixed(1);
 
+      console.log(klass, "-", scores_data[i])
+
       let [x1, y1, x2, y2] = xywh2xyxy(boxes_data[i]);
+
+      const heightRatio = model_dim[0] / 640; 
+      const widthRatio = model_dim[1] / 640;
+      console.log("RATIO:", heightRatio, widthRatio)
+
+      x1 *= widthRatio;
+      x2 *= widthRatio;
+      y1 *= heightRatio;
+      y2 *= heightRatio;
 
       const width = x2 - x1;
       const height = y2 - y1;
+
+      console.log(`Drawing box for ${klass}: x1=${x1}, y1=${y1}, width=${width}, height=${height}, score=${score}`);
 
       // Draw the bounding box.
       ctx.strokeStyle = "#B033FF";

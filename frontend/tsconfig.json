@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/yolo-webcam/nonMaxSuppression.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/yolo-webcam/nonMaxSuppression.js", "src/app/yolo-webcam/page.tsx"],
   "exclude": ["node_modules"]
 }
