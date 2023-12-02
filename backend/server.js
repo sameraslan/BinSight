@@ -1,41 +1,62 @@
 const express = require('express');
-const { PythonShell } = require('python-shell');
 const multer = require('multer');
+const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-const port = 3001;
+const upload = multer(); // for parsing multipart/form-data
 
-app.use(cors()); // Use CORS middleware
+const PORT = 3001; // Use a different port from your React app
 
-// Set up file storage and multer for image upload
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Configure CORS
+app.use(cors({
+  origin: 'http://localhost:3000' // URL of React app
+}));
 
-// Route to receive image and run Python script
-app.post('/infer', upload.single('image'), (req, res) => {
+// Classify image
+app.post('/classify', upload.single('file'), async (req, res) => {
   if (!req.file) {
-    return res.status(400).send('No image given.');
+    return res.status(400).send('No file uploaded.');
   }
 
-  // Set up options for running Python script
-  let options = {
-    mode: 'text',
-    pythonPath: '../binsightenv/bin/python3',
-    pythonOptions: ['-u'], // get print results in real-time
-    scriptPath: '../classifier',
-    args: ['--arg1', 'value1'],
+  try {
+    console.log('File received:', req.file);
+    const response = await axios.post('http://10.99.134.83:1117/predict', {
+      file: req.file
+    }, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    console.log('Response:', response.data);
+
+    res.send(response.data);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+// Mock upload
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const mockClassification = {
+    label: 'Gandu',
+    score: 0.6   
   };
 
-  // Use PythonShell to run your Python script
-  PythonShell.run('testeffnet.py', options, function (err, results) {
-    if (err) throw err;
-    // results is an array consisting of messages collected during script execution
-    console.log('results: %j', results);
-    res.send(results);
+  res.send({
+    message: 'File successfully classified',
+    classification: mockClassification
   });
 });
 
-app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+app.get('/test', (req, res) => {
+  res.send({ message: 'Success' });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
