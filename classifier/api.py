@@ -7,8 +7,10 @@ from torchvision import transforms
 from torch.autograd import Variable
 
 from efficientnet_pytorch import EfficientNet
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.app_context().push()
 
 def predict_image(image, model, device):
@@ -57,7 +59,7 @@ def predict():
         index, confidence = predict_image(img, model, args.device)
         class_name = args.classes[index]
 
-        result = {'class': class_name, 'prob': float(confidence)}
+        result = {'label': class_name, 'score': float(confidence)}
         
         return jsonify(result)
 
