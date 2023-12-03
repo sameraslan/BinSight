@@ -4,20 +4,25 @@ import { Box, Center, VStack, Text } from '@chakra-ui/react';
 
 export default function Home() {
     const videoRef = useRef(null);
+    const roiCanvasRef = useRef(null); // Canvas for displaying ROI
     const analysisCanvasRef = useRef(null); // Canvas for frame analysis
-    const roiCanvasRef = useRef(null); // Separate canvas for displaying ROI
+    const intervalIdRef = useRef(null);
     const [capturedImage, setCapturedImage] = useState(null);
     let previousFrameData = null;
     let stableDuration = 0;
-    const stabilityThreshold = 10; // Threshold for change detection
-    const stabilityDurationRequired = 3000; // Duration in milliseconds
-    const checkInterval = 500; // Interval for checking frames in milliseconds
+    const stabilityThreshold = 10;
+    const stabilityDurationRequired = 2500;
+    const checkInterval = 500;
 
     useEffect(() => {
         const videoElement = videoRef.current;
+        const roiCanvasElement = roiCanvasRef.current;
         const analysisCanvasElement = analysisCanvasRef.current;
+
         const setupVideoAndCanvas = () => {
-            if (videoElement && analysisCanvasElement) {
+            if (videoElement && roiCanvasElement && analysisCanvasElement) {
+                roiCanvasElement.width = videoElement.videoWidth;
+                roiCanvasElement.height = videoElement.videoHeight;
                 analysisCanvasElement.width = videoElement.videoWidth;
                 analysisCanvasElement.height = videoElement.videoHeight;
                 drawROI();
@@ -31,21 +36,22 @@ export default function Home() {
                     videoElement.play();
                 })
                 .catch(err => console.error("Error accessing webcam:", err));
-            
+
             videoElement.addEventListener('loadedmetadata', setupVideoAndCanvas);
         }
 
-        const intervalId = setInterval(() => {
+        intervalIdRef.current = setInterval(() => {
             if (videoElement.readyState === 4) {
                 captureAndCompareFrame();
                 if (stableDuration >= stabilityDurationRequired) {
                     captureCurrentFrame();
-                    clearInterval(intervalId);
+                    clearInterval(intervalIdRef.current);
                 }
             }
         }, checkInterval);
 
         return () => {
+            clearInterval(intervalIdRef.current);
             if (videoElement.srcObject) {
                 videoElement.srcObject.getTracks().forEach(track => track.stop());
             }
@@ -57,9 +63,6 @@ export default function Home() {
         const roiCanvasElement = roiCanvasRef.current;
         const videoElement = videoRef.current;
         if (roiCanvasElement && videoElement) {
-            roiCanvasElement.width = videoElement.videoWidth;
-            roiCanvasElement.height = videoElement.videoHeight;
-
             const ctx = roiCanvasElement.getContext('2d');
             const roiSize = 0.5;
             const roiWidth = videoElement.videoWidth * roiSize;
@@ -88,6 +91,7 @@ export default function Home() {
 
             if (previousFrameData) {
                 const diff = frameDifference(currentFrameData, previousFrameData);
+                console.log('Frame difference:', diff); 
                 if (diff < stabilityThreshold) {
                     stableDuration += checkInterval;
                 } else {
@@ -102,56 +106,37 @@ export default function Home() {
     const frameDifference = (currentFrame, previousFrame) => {
         let diff = 0;
         for (let i = 0; i < currentFrame.data.length; i += 4) {
-            // Calculating difference in color values (RGBA)
-            diff += Math.abs(currentFrame.data[i] - previousFrame.data[i]); // R
-            diff += Math.abs(currentFrame.data[i + 1] - previousFrame.data[i + 1]); // G
-            diff += Math.abs(currentFrame.data[i + 2] - previousFrame.data[i + 2]); // B
+            diff += Math.abs(currentFrame.data[i] - previousFrame.data[i]);
+            diff += Math.abs(currentFrame.data[i + 1] - previousFrame.data[i + 1]);
+            diff += Math.abs(currentFrame.data[i + 2] - previousFrame.data[i + 2]);
         }
-        return diff / (currentFrame.data.length / 4); // Average difference
+        return diff / (currentFrame.data.length / 4);
     };
 
     const captureCurrentFrame = () => {
         const videoElement = videoRef.current;
-        const captureCanvas = document.createElement('canvas');
-        captureCanvas.width = videoElement.videoWidth;
-        captureCanvas.height = videoElement.videoHeight;
-        const captureCtx = captureCanvas.getContext('2d');
+        if (videoElement && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+            const captureCanvas = document.createElement('canvas');
+            captureCanvas.width = videoElement.videoWidth;
+            captureCanvas.height = videoElement.videoHeight;
+            const captureCtx = captureCanvas.getContext('2d');
 
-        // Define and draw the ROI
-        const roiSize = 0.5; // Middle 1/4th of the screen
-        const roiWidth = captureCanvas.width * roiSize;
-        const roiHeight = captureCanvas.height * roiSize;
-        const roiX = (captureCanvas.width - roiWidth) / 2;
-        const roiY = (captureCanvas.height - roiHeight) / 2;
+            const roiSize = 0.5;
+            const roiWidth = captureCanvas.width * roiSize;
+            const roiHeight = captureCanvas.height * roiSize;
+            const roiX = (captureCanvas.width - roiWidth) / 2;
+            const roiY = (captureCanvas.height - roiHeight) / 2;
 
-        // Capture only the ROI part
-        captureCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
-        const imageDataUrl = captureCanvas.toDataURL('image/png');
+            captureCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
+            const imageDataUrl = captureCanvas.toDataURL('image/png');
 
-        setCapturedImage(imageDataUrl);
+            setCapturedImage(imageDataUrl);
+            clearInterval(intervalIdRef.current); // Clear interval after capturing frame
+        } else {
+            console.error('Video element is not ready for capturing frames.');
+        }
     };
 
-    useEffect(() => {
-        // Draw the ROI bounding box on the ROI canvas
-        const roiCanvasElement = roiCanvasRef.current;
-        const videoElement = videoRef.current;
-        if (roiCanvasElement && videoElement) {
-            const ctx = roiCanvasElement.getContext('2d');
-            const roiSize = 0.5; // Middle 1/4th of the screen
-            const roiWidth = videoElement.videoWidth * roiSize;
-            const roiHeight = videoElement.videoHeight * roiSize;
-            const roiX = (videoElement.videoWidth - roiWidth) / 2;
-            const roiY = (videoElement.videoHeight - roiHeight) / 2;
-
-            roiCanvasElement.width = videoElement.videoWidth;
-            roiCanvasElement.height = videoElement.videoHeight;
-
-            ctx.strokeStyle = '#FF0000'; // Red color for ROI
-            ctx.lineWidth = 2; // Thickness of the ROI rectangle
-            ctx.strokeRect(roiX, roiY, roiWidth, roiHeight);
-        }
-    }, [videoRef]);
-    
     return (
         <Center h="100vh">
             <VStack spacing={4} align="stretch">
@@ -164,8 +149,8 @@ export default function Home() {
                     ) : (
                         <>
                             <video ref={videoRef} style={{ width: '640px', height: '480px' }} autoPlay playsInline muted />
+                            <canvas ref={roiCanvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '640px', height: '480px', zIndex: 1 }} />
                             <canvas ref={analysisCanvasRef} style={{ display: 'none' }} />
-                            <canvas ref={roiCanvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '640px', height: '480px' }} />
                         </>
                     )}
                 </Box>
