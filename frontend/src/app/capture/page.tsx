@@ -162,20 +162,26 @@ export default function Home() {
     const captureCurrentFrame = () => {
         const videoElement = videoRef.current;
         if (videoElement && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-            const captureCanvas = document.createElement('canvas');
-            captureCanvas.width = videoElement.videoWidth;
-            captureCanvas.height = videoElement.videoHeight;
-            const captureCtx = captureCanvas.getContext('2d');
-
+            // Create a temporary canvas for capturing the ROI
+            const tempCanvas = document.createElement('canvas');
             const roiSize = 0.5;
-            const roiWidth = captureCanvas.width * roiSize;
-            const roiHeight = captureCanvas.height * roiSize;
-            const roiX = (captureCanvas.width - roiWidth) / 2;
-            const roiY = (captureCanvas.height - roiHeight) / 2;
-
-            captureCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
-            const imageDataUrl = captureCanvas.toDataURL('image/jpeg');
-
+            const roiWidth = videoElement.videoWidth * roiSize;
+            const roiHeight = videoElement.videoHeight * roiSize;
+            const roiX = (videoElement.videoWidth - roiWidth) / 2;
+            const roiY = (videoElement.videoHeight - roiHeight) / 2;
+    
+            // Set the temporary canvas size to the ROI size
+            tempCanvas.width = roiWidth;
+            tempCanvas.height = roiHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+    
+            // Draw only the ROI onto the temporary canvas
+            tempCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
+    
+            // Convert the drawn ROI to an image URL
+            const imageDataUrl = tempCanvas.toDataURL('image/jpeg');
+    
+            // Update the state with the captured image
             setCapturedImage(imageDataUrl);
             clearInterval(intervalIdRef.current); // Clear interval after capturing frame
         } else {
