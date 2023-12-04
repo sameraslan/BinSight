@@ -1,10 +1,13 @@
 import argparse
 from PIL import Image
 from flask import Flask, request, jsonify
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
 import torch
 from torchvision import transforms
 from torch.autograd import Variable
+
 
 from efficientnet_pytorch import EfficientNet
 from flask_cors import CORS
@@ -81,9 +84,11 @@ if __name__ == '__main__':
     model.eval()
     model.to(args.device)
 
-    transform = transforms.Compose([transforms.Resize((260, 260)),
-                                                transforms.ToTensor(),
-                                                ])
+    test_transform = A.Compose([A.Resize(260, 260),
+                                A.Normalize(mean=[0.485, 0.456, 0.406],
+                                std=[0.229, 0.224, 0.225]),
+                                ToTensorV2()])
+    
     to_pil = transforms.ToPILImage()
 
-    app.run(debug=True, port=1117)
+    app.run(debug=True, host='10.99.134.83', port=1117)
