@@ -22,7 +22,7 @@ def get_random_images(data_dir, test_transforms, num=10):
     loader = torch.utils.data.DataLoader(data,
                                          sampler=sampler, batch_size=num)
     dataiter = iter(loader)
-    images, labels = dataiter.next()
+    images, labels = next(dataiter)
     return images, labels, classes
 
 
@@ -43,9 +43,9 @@ def get_args_parser():
     parser.add_argument(
         '--data_img',
         help='path to base directory with data',
-        default='/data/yucheng/AI_System/Dataset/WasteSorting/re-split/test')
+        default='/mnt/yucheng/PhD/AI_System/Dataset/WasteSorting/re-split/test')
     parser.add_argument('--out', help='path to result',
-                        default='/data/yucheng/AI_System/Reference/detect-waste/classifier/lightning_logs/version_2/', type=str)
+                        default='/mnt/yucheng/PhD/ccvl23/AI_System/BinSight/classifier/lightning_logs/version_2/', type=str)
     parser.add_argument(
         '--model_name', default='efficientnet-b2', type=str,
         help='Name of model to train (default: "efficientnet-b0)"')
@@ -65,7 +65,7 @@ def get_args_parser():
     parser.add_argument(
         '--checkpoint',
         help='path to directory to the saved checkpoint',
-        default='/data/yucheng/AI_System/BinSight/classifier/lightning_logs/version_2/checkpoints/epoch=14_val_acc=0.8923.ckpt')
+        default='/mnt/yucheng/PhD/ccvl23/AI_System/BinSight/classifier/lightning_logs/version_2/checkpoints/epoch=14_val_acc=0.8923.ckpt')
     
     parser.add_argument('--name', default='test.png',
                         help='path to save test images', type=str)

@@ -18,7 +18,7 @@ CORS(app)
 app.app_context().push()
 
 def predict_image(image, model, device):
-    image_tensor = test_transform(image=np.array(image))['image'].float().to(device)
+    image_tensor = test_transforms(image).float().to(device)
     image_tensor = image_tensor.unsqueeze_(0)
     input_img = Variable(image_tensor)
     input_img = input_img.to(device)
@@ -86,19 +86,21 @@ if __name__ == '__main__':
     for k, v in checkpoint['state_dict'].items():
         new_checkpoint[k.replace('efficient_net.', '')] = v
 
+    model.load_state_dict(new_checkpoint)
     model.eval()
     model.to(args.device)
 
-    test_transform = A.Compose([A.Resize(260, 260),
-                                A.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225]),
-                                ToTensorV2()])
+    test_transforms = transforms.Compose([transforms.Resize((260, 260)),
+                                            transforms.ToTensor(),
+                                            ])
     
     to_pil = transforms.ToPILImage()
     
-    # file = 'test.jpg'
-    # img = Image.open(file)
+    # file = 'test_recycle_1.jpg'
+    # file = 'test_paper_2.jpg'
+    # img = Image.open(file)  # PIL image
+    
     # index, confidence = predict_image(img, model, args.device)
-    # print(index, confidence)
+    # print(args.classes[index], confidence)
 
-    app.run(debug=True, host='10.99.134.83', port=1117)
+    app.run(debug=True, host='YOUR_IP_ADDR', port=1117)
