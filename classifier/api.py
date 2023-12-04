@@ -86,4 +86,4 @@ if __name__ == '__main__':
                                                 ])
     to_pil = transforms.ToPILImage()
 
-    app.run(debug=True, port=1117)
+    app.run(debug=True, host='10.99.134.83', port=1117)
