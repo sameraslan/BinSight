@@ -3,6 +3,7 @@ from PIL import Image
 from flask import Flask, request, jsonify
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
+import numpy as np
 
 import torch
 from torchvision import transforms
@@ -17,7 +18,7 @@ CORS(app)
 app.app_context().push()
 
 def predict_image(image, model, device):
-    image_tensor = transform(image).float().to(device)
+    image_tensor = test_transform(image=np.array(image))['image'].float().to(device)
     image_tensor = image_tensor.unsqueeze_(0)
     input_img = Variable(image_tensor)
     input_img = input_img.to(device)
@@ -69,6 +70,10 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)})
 
+def get_augmentation(transform):
+    return lambda img: transform(image=np.array(img))
+
+
 if __name__ == '__main__':
     parser = get_args_parser()
     args = parser.parse_args()
@@ -90,5 +95,10 @@ if __name__ == '__main__':
                                 ToTensorV2()])
     
     to_pil = transforms.ToPILImage()
+    
+    # file = 'test.jpg'
+    # img = Image.open(file)
+    # index, confidence = predict_image(img, model, args.device)
+    # print(index, confidence)
 
     app.run(debug=True, host='10.99.134.83', port=1117)
