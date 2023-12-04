@@ -6,37 +6,38 @@ import '@tensorflow/tfjs-backend-webgl';
 import { Webcam } from './webcam'; // Update the path as per your project structure
 import { renderBoxes } from './renderBox';
 import { non_max_suppression } from './nonMaxSuppression';
+import uploadImage from 'src/services/upload';
 
-async function uploadImage(file: File, setResponse: React.Dispatch<React.SetStateAction<{ status: string, data: any }>>) {
-    const formData = new FormData();
-    formData.append('file', file);
-    console.log("trying")
+// async function uploadImage(file: File, setResponse: React.Dispatch<React.SetStateAction<{ status: string, data: any }>>) {
+//     const formData = new FormData();
+//     formData.append('file', file);
+//     console.log("trying")
   
-    try {
-      const response = await fetch('http://127.0.0.1:1117/predict', {
-        method: 'POST',
-        body: formData,
-      });
+//     try {
+//       const response = await fetch('http://127.0.0.1:1117/predict', {
+//         method: 'POST',
+//         body: formData,
+//       });
   
-      const data = await response.json();
-      console.log('Response from ML model:', data);
+//       const data = await response.json();
+//       console.log('Response from ML model:', data);
   
-      if (data) {
-        setResponse({
-            status: 'success',
-            data: {
-                label: data.label,
-                score: data.score
-            }
-        });
-      } else {
-        setResponse({ status: 'success', data: 'success' });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setResponse({ status: 'error', data: 'Failed' });
-    }
-  }
+//       if (data) {
+//         setResponse({
+//             status: 'success',
+//             data: {
+//                 label: data.label,
+//                 score: data.score
+//             }
+//         });
+//       } else {
+//         setResponse({ status: 'success', data: 'success' });
+//       }
+//     } catch (error) {
+//       console.error('Error:', error);
+//       setResponse({ status: 'error', data: 'Failed' });
+//     }
+//   }
   
 
 export default function Home() {
@@ -114,7 +115,7 @@ export default function Home() {
         if (videoRef.current) {
             videoRef.current = null;
         }
-
+        console.log("file", file)
         uploadImage(file, setResponse);
     }
     
@@ -148,7 +149,7 @@ export default function Home() {
                         <Text fontSize="2xl" fontWeight="bold" textAlign="center">
                             Hi! Place your item in the box
                         </Text>
-                        <Box
+                        {/* <Box
                             display="flex"
                             justifyContent="center"
                             alignItems="center"
@@ -164,7 +165,7 @@ export default function Home() {
                             ) : null}
                             <video ref={videoRef} style={{ width: '640px', height: '480px' }} autoPlay playsInline muted />
                             <canvas ref={canvasRef} style={{ position: 'absolute', width: '640px', height: '480px' }} />
-                        </Box>
+                        </Box> */}
                         <Box p={4}>
                             <Input 
                             type="file" 

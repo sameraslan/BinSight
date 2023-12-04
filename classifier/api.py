@@ -60,7 +60,7 @@ def predict():
         class_name = args.classes[index]
 
         result = {'label': class_name, 'score': float(confidence)}
-        
+        print(result)
         return jsonify(result)
 
     except Exception as e:

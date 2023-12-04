@@ -1,18 +1,59 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Center, VStack, Text } from '@chakra-ui/react';
+import { Box, Center, VStack, Heading, Badge, Text, Spinner, useToast } from '@chakra-ui/react';
+import uploadImage from 'src/services/upload';
+import { 
+    MdCompost, MdDescription, MdDelete 
+  } from 'react-icons/md';
+import { FaRecycle } from "react-icons/fa";
+
 
 export default function Home() {
+    let previousFrameData = null;
+    let stableDuration = 0;
     const videoRef = useRef(null);
     const roiCanvasRef = useRef(null); // Canvas for displaying ROI
     const analysisCanvasRef = useRef(null); // Canvas for frame analysis
     const intervalIdRef = useRef(null);
-    const [capturedImage, setCapturedImage] = useState(null);
-    let previousFrameData = null;
-    let stableDuration = 0;
     const stabilityThreshold = 10;
     const stabilityDurationRequired = 2500;
     const checkInterval = 500;
+    const toast = useToast();
+    const [page, setPage] = useState("capture");
+    const [capturedImage, setCapturedImage] = useState(null);
+    const [response, setResponse] = useState({ status: 'idle', data: null });
+
+    useEffect(() => {
+        if (response && response.status === 'success' && page === "display") {
+            const timeoutId = setTimeout(() => {
+                setPage("capture");
+                setResponse({ status: 'idle', data: null })
+                setCapturedImage(null);
+            }, 5000);
+
+            // Cleanup timeout on component unmount or if dependencies change
+            return () => clearTimeout(timeoutId);
+        }
+
+        if (page === "error") {
+            toast({
+                title: "Error",
+                description: "Couldn't get you your classification! Please try again :)",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+                position: "bottom-left"
+            });
+
+            const timeoutId = setTimeout(() => {
+                setResponse({ status: 'idle', data: null })
+                setPage("capture");
+                setCapturedImage(null);
+            }, 2000);
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [page]);
 
     useEffect(() => {
         const videoElement = videoRef.current;
@@ -29,6 +70,10 @@ export default function Home() {
             }
         };
 
+        if (page != "capture") {
+            return;
+        }
+
         if (navigator.mediaDevices.getUserMedia && videoElement) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(stream => {
@@ -44,6 +89,7 @@ export default function Home() {
             if (videoElement.readyState === 4) {
                 captureAndCompareFrame();
                 if (stableDuration >= stabilityDurationRequired) {
+                    setPage("loading")
                     captureCurrentFrame();
                     clearInterval(intervalIdRef.current);
                 }
@@ -57,7 +103,7 @@ export default function Home() {
             }
             videoElement.removeEventListener('loadedmetadata', setupVideoAndCanvas);
         };
-    }, []);
+    }, [page]);
 
     const drawROI = () => {
         const roiCanvasElement = roiCanvasRef.current;
@@ -91,7 +137,7 @@ export default function Home() {
 
             if (previousFrameData) {
                 const diff = frameDifference(currentFrameData, previousFrameData);
-                console.log('Frame difference:', diff); 
+                // console.log('Frame difference:', diff); 
                 if (diff < stabilityThreshold) {
                     stableDuration += checkInterval;
                 } else {
@@ -128,7 +174,7 @@ export default function Home() {
             const roiY = (captureCanvas.height - roiHeight) / 2;
 
             captureCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
-            const imageDataUrl = captureCanvas.toDataURL('image/png');
+            const imageDataUrl = captureCanvas.toDataURL('image/jpeg');
 
             setCapturedImage(imageDataUrl);
             clearInterval(intervalIdRef.current); // Clear interval after capturing frame
@@ -137,11 +183,62 @@ export default function Home() {
         }
     };
 
+    const capitalizeFirstLetter = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+    const ClassificationDisplay = ({ classificationData }) => {
+        const {label, score} = classificationData;
+        // let label = 'recycle';
+        // let score = 0.9;
+    
+        const icons = {
+            compost: <MdCompost style={{ fontSize: '3em' }} />,
+            paper: <MdDescription style={{ fontSize: '3em' }} />,
+            recycle: <FaRecycle style={{ fontSize: '3em' }} />,
+            trash: <MdDelete style={{ fontSize: '3em' }} />
+        };
+    
+        const icon = icons[label];
+    
+        return (
+            <Center>
+                <Box maxW='lg' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
+                    <Center bg='gray.100' p='4'>
+                        {icon}
+                    </Center>
+                    <Box p='6'>
+                        <Heading size='xl'>{label.toUpperCase()}</Heading>
+                        <Badge mt='1' fontSize='2em' colorScheme='green'>
+                            {Math.round(score * 100)}% Match
+                        </Badge>
+                    </Box>
+                </Box>
+            </Center>
+        );
+    };
+      
+    useEffect(() => {
+        if (capturedImage) {
+            // Convert Data URL to Blob, then to File
+            fetch(capturedImage)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "captured-image.jpeg", { type: "image/jpeg" });
+                    uploadImage(file, setResponse, setPage);
+                })
+                .catch(console.error);
+        }
+    }, [capturedImage]);
+    
     return (
         <Center h="100vh">
             <VStack spacing={4} align="stretch">
+                {/* <ClassificationDisplay classificationData={{label: 'compost', score: .9}} /> */}
+                {response && response.status === 'idle' && page === "capture" ? (
+                <>
                 <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-                    Hi! Place your waste item in the box.
+                    Hi! Place your waste item in the red box.
                 </Text>
                 <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
                     {capturedImage ? (
@@ -154,6 +251,19 @@ export default function Home() {
                         </>
                     )}
                 </Box>
+                </>
+                ) : null}
+                {page === "loading" && (
+                    <Center>
+                    <Spinner 
+                        size='xl'
+                        speed='0.65s'
+                    />
+                    </Center>
+                )}
+                {response && response.status === 'success' && response.data && page === "display" ? (
+                    <ClassificationDisplay classificationData={response.data} />
+                ) : null}
             </VStack>
         </Center>
     );
