@@ -252,7 +252,7 @@ export default function Home() {
                     ) : (
                         <>
                             <video ref={videoRef} style={{ width: '640px', height: '480px' }} autoPlay playsInline muted />
-                            <canvas ref={roiCanvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '640px', height: '480px', zIndex: 1 }} />
+                            <canvas ref={roiCanvasRef} style={{ position: 'absolute', width: '640px', height: '480px', zIndex: 1 }} />
                             <canvas ref={analysisCanvasRef} style={{ display: 'none' }} />
                         </>
                     )}
