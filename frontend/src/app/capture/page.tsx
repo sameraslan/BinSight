@@ -149,6 +149,38 @@ export default function Home() {
         }
     };
 
+    // Generating conditional messages
+    const generateInformativeMessage = (label, score) => {
+        const messages = {
+            idle: "Ready for eco-action! Position your item when you're set.",
+            lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view.",
+            recycle: {
+                medium: "Looks like a recyclable item. Check for recycling symbols and numbers!",
+                high: "Nicely done! This looks recyclable.",
+                note: "Tip: Clean and dry items before recycling. Look for symbols like PET (1) or HDPE (2) for proper sorting."
+            },
+            trash: {
+                medium: "This might be trash. Double-check, especially for hard-to-recycle plastics.",
+                high: "Correct! This belongs in the trash.",
+                note: "Remember: Not all plastics are recyclable. For instance, 'PS' (Polystyrene) should go to trash."
+            },
+            compost: {
+                medium: "Seems compostable. Ensure it's organic matter like food scraps.",
+                high: "Great! It's suitable for composting.",
+                note: "Compost enriches soil. Include food waste and biodegradable products, but avoid plastics."
+            },
+            paper: {
+                medium: "This appears to be paper. Verify if it's recyclable like newspapers or cardboard.",
+                high: "Right on! It's a paper item.",
+                note: "Recycling tip: Keep paper clean and dry. Newspapers, magazines, and cardboard are usually recyclable."
+            }
+        };
+
+        if (score < 0.5) return messages.lowConfidence;
+        if (score >= 0.5 && score < 0.7) return messages[label].medium;
+        if (score >= 0.7) return { main: messages[label].high, note: messages[label].note };
+    };
+
     const frameDifference = (currentFrame, previousFrame) => {
         let diff = 0;
         for (let i = 0; i < currentFrame.data.length; i += 4) {
@@ -195,29 +227,23 @@ export default function Home() {
     
     const ClassificationDisplay = ({ classificationData }) => {
         const {label, score} = classificationData;
-        // let label = 'recycle';
-        // let score = 0.9;
-    
-        const icons = {
-            compost: <MdCompost style={{ fontSize: '3em' }} />,
-            paper: <MdDescription style={{ fontSize: '3em' }} />,
-            recycle: <FaRecycle style={{ fontSize: '3em' }} />,
-            trash: <MdDelete style={{ fontSize: '3em' }} />
-        };
-    
-        const icon = icons[label];
+        const message = generateInformativeMessage(label, score);
+        const isHighConfidence = score >= 0.7;
+        const icons = { /* ... as before ... */ };
     
         return (
             <Center>
                 <Box maxW='lg' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
                     <Center bg='gray.100' p='4'>
-                        {icon}
+                        {icons[label]}
                     </Center>
                     <Box p='6'>
                         <Heading size='xl'>{label.toUpperCase()}</Heading>
                         <Badge mt='1' fontSize='2em' colorScheme='green'>
                             {Math.round(score * 100)}% Match
                         </Badge>
+                        <Text mt='3' fontSize='lg'>{isHighConfidence ? message.main : message}</Text>
+                        {isHighConfidence && <Text mt='2' fontSize='md' fontStyle='italic'>{message.note}</Text>}
                     </Box>
                 </Box>
             </Center>
@@ -240,11 +266,10 @@ export default function Home() {
     return (
         <Center h="100vh">
             <VStack spacing={4} align="stretch">
-                {/* <ClassificationDisplay classificationData={{label: 'compost', score: .9}} /> */}
                 {response && response.status === 'idle' && page === "capture" ? (
                 <>
                 <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-                    Hi! Place your waste item in the red box.
+                    Ready for eco-action! Position your item when you're set.
                 </Text>
                 <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
                     {capturedImage ? (
