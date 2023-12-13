@@ -28,13 +28,13 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
       const klass = labels[classes_data[i]];
       const score = (scores_data[i] * 100).toFixed(1);
 
-      console.log(klass, "-", scores_data[i])
+      // console.log(klass, "-", scores_data[i])
 
       let [x1, y1, x2, y2] = xywh2xyxy(boxes_data[i]);
 
       const heightRatio = model_dim[0] / 640; 
       const widthRatio = model_dim[1] / 640;
-      console.log("RATIO:", heightRatio, widthRatio)
+      // console.log("RATIO:", heightRatio, widthRatio)
 
       x1 *= widthRatio;
       x2 *= widthRatio;
@@ -44,7 +44,7 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
       const width = x2 - x1;
       const height = y2 - y1;
 
-      console.log(`Drawing box for ${klass}: x1=${x1}, y1=${y1}, width=${width}, height=${height}, score=${score}`);
+      // console.log(`Drawing box for ${klass}: x1=${x1}, y1=${y1}, width=${width}, height=${height}, score=${score}`);
 
       // Draw the bounding box.
       ctx.strokeStyle = "#B033FF";

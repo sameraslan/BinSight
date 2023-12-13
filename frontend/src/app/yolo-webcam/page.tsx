@@ -8,14 +8,14 @@ import { renderBoxes } from './renderBox';
 import { non_max_suppression } from './nonMaxSuppression';
 
 export default function Home() {
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const theme = useTheme();
     const [loading, setLoading] = useState({ loading: true, progress: 0 });
     const modelName = 'yolov7';
 
     // Function to detect objects in each frame
-    const detectFrame = async (model, videoRef, canvasRef) => {
+    const detectFrame = async (model: tf.GraphModel, videoRef: React.MutableRefObject<HTMLVideoElement | null>, canvasRef: React.MutableRefObject<HTMLCanvasElement | null>) => {
         const videoElement = videoRef.current;
         const canvasElement = canvasRef.current;
         if (videoElement && canvasElement) {
@@ -25,12 +25,12 @@ export default function Home() {
         const model_dim = [480, 640];
         tf.engine().startScope();
         const input = tf.tidy(() => {
-            let img = tf.browser.fromPixels(videoRef.current)
+            let img = tf.browser.fromPixels(videoRef.current as HTMLVideoElement)
                         .resizeNearestNeighbor([model_dim[1], model_dim[0]]) // Resize to 640x480
     
             // Calculate padding
             const padWidth = (model_dim[1] - model_dim[0]) / 2;
-            const padding = [[0, 0], [padWidth, padWidth], [0, 0]];
+            const padding: [number, number][] = [[0, 0], [padWidth, padWidth], [0, 0]];
     
             // Pad the image to make it square
             let paddedImg = img.pad(padding, 0); // Pad with zeros (black)
@@ -43,6 +43,7 @@ export default function Home() {
         });
 
         await model.executeAsync(input).then((res) => {
+            // @ts-ignore: Ignore the error about 'arraySync'
             res = res.arraySync()[0];
             var detections = non_max_suppression(res);
             const boxes = detections.map(d => d.slice(0, 4));
@@ -60,18 +61,25 @@ export default function Home() {
     // Effect hook to load the YOLOv7 model
     useEffect(() => {
         const webcam = new Webcam();
-
+    
         tf.loadGraphModel(`${window.location.origin}/${modelName}_web_model/model.json`, {
             onProgress: (fractions) => {
                 setLoading({ loading: true, progress: fractions });
             },
         }).then(async (yolov7) => {
+            // Check if the model input shape is defined and has the correct structure
+            const inputShape = yolov7.inputs[0].shape;
+            if (!inputShape || inputShape.length === 0) {
+                console.error('Model input shape is undefined or incorrect.');
+                return;
+            }
+    
             // Warmup the model before using real data
-            const dummyInput = tf.ones(yolov7.inputs[0].shape);
+            const dummyInput = tf.ones(inputShape);
             await yolov7.executeAsync(dummyInput).then((warmupResult) => {
                 tf.dispose(warmupResult);
                 tf.dispose(dummyInput);
-
+    
                 setLoading({ loading: false, progress: 1 });
                 webcam.open(videoRef, () => detectFrame(yolov7, videoRef, canvasRef));
             });

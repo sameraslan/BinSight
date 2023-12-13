@@ -7,20 +7,31 @@ import {
   } from 'react-icons/md';
 import { FaRecycle } from "react-icons/fa";
 
+interface ClassificationData {
+    label: string;
+    score: number;
+}
+
+const icons: { [key in string]: JSX.Element } = {
+    compost: <MdCompost style={{ fontSize: '3em' }} />,
+    paper: <MdDescription style={{ fontSize: '3em' }} />,
+    recycle: <FaRecycle style={{ fontSize: '3em' }} />,
+    trash: <MdDelete style={{ fontSize: '3em' }} />
+};
 
 export default function Home() {
-    let previousFrameData = null;
+    let previousFrameData: ImageData | null = null;
     let stableDuration = 0;
-    const videoRef = useRef(null);
-    const roiCanvasRef = useRef(null); // Canvas for displaying ROI
-    const analysisCanvasRef = useRef(null); // Canvas for frame analysis
-    const intervalIdRef = useRef(null);
-    const stabilityThreshold = 10;
-    const stabilityDurationRequired = 2500;
-    const checkInterval = 500;
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const roiCanvasRef = useRef<HTMLCanvasElement>(null);
+    const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
+    const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const stabilityThreshold: number = 10;
+    const stabilityDurationRequired: number = 2500;
+    const checkInterval: number = 500;
     const toast = useToast();
     const [page, setPage] = useState("capture");
-    const [capturedImage, setCapturedImage] = useState(null);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [response, setResponse] = useState({ status: 'idle', data: null });
 
     useEffect(() => {
@@ -86,7 +97,7 @@ export default function Home() {
         }
 
         intervalIdRef.current = setInterval(() => {
-            if (videoElement.readyState === 4) {
+            if (videoElement && videoElement.readyState === 4) {
                 captureAndCompareFrame();
                 if (stableDuration >= stabilityDurationRequired) {
                     setPage("loading")
@@ -98,10 +109,10 @@ export default function Home() {
 
         return () => {
             clearInterval(intervalIdRef.current);
-            if (videoElement.srcObject) {
+            if (videoElement && videoElement.srcObject instanceof MediaStream) {
                 videoElement.srcObject.getTracks().forEach(track => track.stop());
             }
-            videoElement.removeEventListener('loadedmetadata', setupVideoAndCanvas);
+            videoElement && videoElement.removeEventListener('loadedmetadata', setupVideoAndCanvas);
         };
     }, [page]);
 
@@ -116,10 +127,12 @@ export default function Home() {
             const roiX = (videoElement.videoWidth - roiWidth) / 2;
             const roiY = (videoElement.videoHeight - roiHeight) / 2;
 
-            ctx.clearRect(0, 0, roiCanvasElement.width, roiCanvasElement.height);
-            ctx.strokeStyle = '#FF0000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(roiX, roiY, roiWidth, roiHeight);
+            if (ctx) {
+                ctx.clearRect(0, 0, roiCanvasElement.width, roiCanvasElement.height);
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(roiX, roiY, roiWidth, roiHeight);
+            }
         }
     };
 
@@ -132,10 +145,10 @@ export default function Home() {
             const width = videoElement.videoWidth;
             const height = videoElement.videoHeight;
 
-            context.drawImage(videoElement, 0, 0, width, height);
-            const currentFrameData = context.getImageData(0, 0, width, height);
+            context && context.drawImage(videoElement, 0, 0, width, height);
+            const currentFrameData = context && context.getImageData(0, 0, width, height);
 
-            if (previousFrameData) {
+            if (previousFrameData && currentFrameData) {
                 const diff = frameDifference(currentFrameData, previousFrameData);
                 // console.log('Frame difference:', diff); 
                 if (diff < stabilityThreshold) {
@@ -149,39 +162,58 @@ export default function Home() {
         }
     };
 
-    // Generating conditional messages
-    const generateInformativeMessage = (label, score) => {
-        const messages = {
-            idle: "Ready for eco-action! Position your item when you're set.",
-            lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view.",
-            recycle: {
-                medium: "Looks like a recyclable item. Check for recycling symbols and numbers!",
-                high: "Nicely done! This looks recyclable.",
-                note: "Tip: Clean and dry items before recycling. Look for symbols like PET (1) or HDPE (2) for proper sorting."
-            },
-            trash: {
-                medium: "This might be trash. Double-check, especially for hard-to-recycle plastics.",
-                high: "Correct! This belongs in the trash.",
-                note: "Remember: Not all plastics are recyclable. For instance, 'PS' (Polystyrene) should go to trash."
-            },
-            compost: {
-                medium: "Seems compostable. Ensure it's organic matter like food scraps.",
-                high: "Great! It's suitable for composting.",
-                note: "Compost enriches soil. Include food waste and biodegradable products, but avoid plastics."
-            },
-            paper: {
-                medium: "This appears to be paper. Verify if it's recyclable like newspapers or cardboard.",
-                high: "Right on! It's a paper item.",
-                note: "Recycling tip: Keep paper clean and dry. Newspapers, magazines, and cardboard are usually recyclable."
-            }
-        };
-
-        if (score < 0.5) return messages.lowConfidence;
-        if (score >= 0.5 && score < 0.7) return messages[label].medium;
-        if (score >= 0.7) return { main: messages[label].high, note: messages[label].note };
+    const messages = {
+        idle: "Ready for eco-action! Position your item when you're set.",
+        lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view.",
+        recycle: {
+            medium: "Looks like a recyclable item. Check for recycling symbols and numbers!",
+            high: "Nicely done! This looks recyclable.",
+            note: "Tip: Clean and dry items before recycling. Look for symbols like PET (1) or HDPE (2) for proper sorting."
+        },
+        trash: {
+            medium: "This might be trash. Double-check, especially for hard-to-recycle plastics.",
+            high: "Correct! This belongs in the trash.",
+            note: "Remember: Not all plastics are recyclable. For instance, 'PS' (Polystyrene) should go to trash."
+        },
+        compost: {
+            medium: "Seems compostable. Ensure it's organic matter like food scraps.",
+            high: "Great! It's suitable for composting.",
+            note: "Compost enriches soil. Include food waste and biodegradable products, but avoid plastics."
+        },
+        paper: {
+            medium: "This appears to be paper. Verify if it's recyclable like newspapers or cardboard.",
+            high: "Right on! It's a paper item.",
+            note: "Recycling tip: Keep paper clean and dry. Newspapers, magazines, and cardboard are usually recyclable."
+        }
     };
 
-    const frameDifference = (currentFrame, previousFrame) => {
+    type MessageLabel = keyof typeof messages;
+    const generateInformativeMessage = (label: string, score: number): { main: string, note: string } => {
+        if (label in messages) {
+            const message = messages[label as MessageLabel];
+    
+            // Check if message is an object with medium, high, and note properties
+            if (typeof message === 'object') {
+                // When label points to an object with medium, high, and note properties.
+                if (score < 0.5) {
+                    return { main: messages.lowConfidence, note: '' };
+                } else if (score >= 0.5 && score < 0.7) {
+                    return { main: message.medium, note: '' };
+                } else {
+                    return { main: message.high, note: message.note };
+                }
+            } else {
+                // For 'idle' and 'lowConfidence', which are strings
+                return { main: message as string, note: '' };
+            }
+        } else {
+            // Handle the case where label is not a valid key
+            // Return a default message or handle the error as needed
+            return { main: '', note: '' };
+        }
+    };
+
+    const frameDifference = (currentFrame: ImageData, previousFrame: ImageData) => {
         let diff = 0;
         for (let i = 0; i < currentFrame.data.length; i += 4) {
             diff += Math.abs(currentFrame.data[i] - previousFrame.data[i]);
@@ -208,7 +240,7 @@ export default function Home() {
             const tempCtx = tempCanvas.getContext('2d');
     
             // Draw only the ROI onto the temporary canvas
-            tempCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
+            tempCtx && tempCtx.drawImage(videoElement, roiX, roiY, roiWidth, roiHeight, 0, 0, roiWidth, roiHeight);
     
             // Convert the drawn ROI to an image URL
             const imageDataUrl = tempCanvas.toDataURL('image/jpeg');
@@ -220,17 +252,12 @@ export default function Home() {
             console.error('Video element is not ready for capturing frames.');
         }
     };
-
-    const capitalizeFirstLetter = (string) => {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    }
     
-    const ClassificationDisplay = ({ classificationData }) => {
+    const ClassificationDisplay: React.FC<{ classificationData: ClassificationData }> = ({ classificationData }) => {
         const {label, score} = classificationData;
+
+
         const message = generateInformativeMessage(label, score);
-        const isHighConfidence = score >= 0.7;
-        const icons = { /* ... as before ... */ };
-    
         return (
             <Center>
                 <Box maxW='lg' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
@@ -242,8 +269,8 @@ export default function Home() {
                         <Badge mt='1' fontSize='2em' colorScheme='green'>
                             {Math.round(score * 100)}% Match
                         </Badge>
-                        <Text mt='3' fontSize='lg'>{isHighConfidence ? message.main : message}</Text>
-                        {isHighConfidence && <Text mt='2' fontSize='md' fontStyle='italic'>{message.note}</Text>}
+                        <Text mt='3' fontSize='lg'>{message.main ? message.main : ''}</Text>
+                        {message && <Text mt='2' fontSize='md' fontStyle='italic'>{message.note}</Text>}
                     </Box>
                 </Box>
             </Center>
@@ -253,7 +280,7 @@ export default function Home() {
     useEffect(() => {
         if (capturedImage) {
             // Convert Data URL to Blob, then to File
-            fetch(capturedImage)
+            fetch(capturedImage as RequestInfo)
                 .then(res => res.blob())
                 .then(blob => {
                     const file = new File([blob], "captured-image.jpeg", { type: "image/jpeg" });
@@ -269,7 +296,7 @@ export default function Home() {
                 {response && response.status === 'idle' && page === "capture" ? (
                 <>
                 <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-                    Ready for eco-action! Position your item when you're set.
+                    Ready for eco-action! Position your item when you&apos;re set.
                 </Text>
                 <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
                     {capturedImage ? (
