@@ -10,7 +10,7 @@ export default async function uploadImage(
 
   try {
 
-    const response = await fetch('http://127.0.0.1:1117/predict', {
+    const response = await fetch('http://10.203.254.8:1117/predict', {
       method: 'POST',
       body: formData
     });
