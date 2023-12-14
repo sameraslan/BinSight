@@ -10,7 +10,7 @@ export default async function uploadImage(
 
   try {
 
-    const response = await fetch('http://10.203.254.8:1117/predict', {
+    const response = await fetch('https://osprey-dynamic-fawn.ngrok-free.app/predict', {
       method: 'POST',
       body: formData
     });
