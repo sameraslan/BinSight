@@ -40,7 +40,7 @@ export default function Home() {
                 setPage("capture");
                 setResponse({ status: 'idle', data: null })
                 setCapturedImage(null);
-            }, 5000);
+            }, 10000);
 
             // Cleanup timeout on component unmount or if dependencies change
             return () => clearTimeout(timeoutId);
@@ -195,9 +195,9 @@ export default function Home() {
             // Check if message is an object with medium, high, and note properties
             if (typeof message === 'object') {
                 // When label points to an object with medium, high, and note properties.
-                if (score < 0.5) {
+                if (score < 0.6) {
                     return { main: messages.lowConfidence, note: '' };
-                } else if (score >= 0.5 && score < 0.7) {
+                } else if (score >= 0.6 && score < 0.8) {
                     return { main: message.medium, note: '' };
                 } else {
                     return { main: message.high, note: message.note };
