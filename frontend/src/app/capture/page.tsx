@@ -40,7 +40,7 @@ export default function Home() {
                 setPage("capture");
                 setResponse({ status: 'idle', data: null })
                 setCapturedImage(null);
-            }, 10000);
+            }, 7500);
 
             // Cleanup timeout on component unmount or if dependencies change
             return () => clearTimeout(timeoutId);
