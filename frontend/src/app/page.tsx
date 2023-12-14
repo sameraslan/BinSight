@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   const handleLogoClick = () => {
-    router.push('/webcam');
+    router.push('/capture');
   };
 
   return (
