@@ -1,7 +1,8 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
-import { Box, Center, VStack, Heading, Badge, Text, Spinner, useToast } from '@chakra-ui/react';
+import { Box, Center, Image, VStack, Heading, Badge, Text, Spinner, Skeleton, useToast, useTheme } from '@chakra-ui/react';
 import uploadImage from 'src/services/upload';
+import { useRouter } from 'next/navigation';
 import { 
     MdCompost, MdDescription, MdDelete 
   } from 'react-icons/md';
@@ -26,13 +27,21 @@ export default function Home() {
     const roiCanvasRef = useRef<HTMLCanvasElement>(null);
     const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
     const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
-    const stabilityThreshold: number = 10;
+    const stabilityThreshold: number = 15;
     const stabilityDurationRequired: number = 2500;
     const checkInterval: number = 500;
     const toast = useToast();
+    const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
     const [page, setPage] = useState("capture");
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [response, setResponse] = useState({ status: 'idle', data: null });
+    const router = useRouter();
+    const theme = useTheme();
+
+
+    const handleLogoClick = () => {
+        router.push('/');
+    };
 
     useEffect(() => {
         if (response && response.status === 'success' && page === "display") {
@@ -101,6 +110,7 @@ export default function Home() {
                 captureAndCompareFrame();
                 if (stableDuration >= stabilityDurationRequired) {
                     setPage("loading")
+                    setVideoLoaded(false);
                     captureCurrentFrame();
                     clearInterval(intervalIdRef.current);
                 }
@@ -120,18 +130,31 @@ export default function Home() {
         const roiCanvasElement = roiCanvasRef.current;
         const videoElement = videoRef.current;
         if (roiCanvasElement && videoElement) {
+            setVideoLoaded(true);
             const ctx = roiCanvasElement.getContext('2d');
-            const roiSize = 0.5;
+            const roiSize = 0.7;
             const roiWidth = videoElement.videoWidth * roiSize;
             const roiHeight = videoElement.videoHeight * roiSize;
             const roiX = (videoElement.videoWidth - roiWidth) / 2;
             const roiY = (videoElement.videoHeight - roiHeight) / 2;
 
+            const borderRadius = 5; // You can adjust this value for desired corner roundness
+
             if (ctx) {
                 ctx.clearRect(0, 0, roiCanvasElement.width, roiCanvasElement.height);
-                ctx.strokeStyle = '#FF0000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(roiX, roiY, roiWidth, roiHeight);
+                ctx.strokeStyle = '#90CDF4';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(roiX + borderRadius, roiY);
+                ctx.lineTo(roiX + roiWidth - borderRadius, roiY);
+                ctx.arcTo(roiX + roiWidth, roiY, roiX + roiWidth, roiY + borderRadius, borderRadius);
+                ctx.lineTo(roiX + roiWidth, roiY + roiHeight - borderRadius);
+                ctx.arcTo(roiX + roiWidth, roiY + roiHeight, roiX + roiWidth - borderRadius, roiY + roiHeight, borderRadius);
+                ctx.lineTo(roiX + borderRadius, roiY + roiHeight);
+                ctx.arcTo(roiX, roiY + roiHeight, roiX, roiY + roiHeight - borderRadius, borderRadius);
+                ctx.lineTo(roiX, roiY + borderRadius);
+                ctx.arcTo(roiX, roiY, roiX + borderRadius, roiY, borderRadius);
+                ctx.stroke();
             }
         }
     };
@@ -163,7 +186,7 @@ export default function Home() {
     };
 
     const messages = {
-        idle: "Ready for eco-action! Position your item when you're set.",
+        idle: "Ready for eco-action! Position your item in the red box when you're set.",
         lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view.",
         recycle: {
             medium: "Looks like a recyclable item. Check for recycling symbols and numbers!",
@@ -291,38 +314,104 @@ export default function Home() {
     }, [capturedImage]);
     
     return (
-        <Center h="100vh">
-            <VStack spacing={4} align="stretch">
-                {response && response.status === 'idle' && page === "capture" ? (
-                <>
-                <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-                    Ready for eco-action! Position your item when you&apos;re set.
-                </Text>
-                <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
-                    {capturedImage ? (
-                        <img src={capturedImage} alt="Captured frame" />
-                    ) : (
-                        <>
-                            <video ref={videoRef} style={{ width: '640px', height: '480px' }} autoPlay playsInline muted />
-                            <canvas ref={roiCanvasRef} style={{ position: 'absolute', width: '640px', height: '480px', zIndex: 1 }} />
-                            <canvas ref={analysisCanvasRef} style={{ display: 'none' }} />
-                        </>
+        <Box position="relative" h="100vh">
+            <Box 
+                position="absolute" 
+                top={0} 
+                left={0} 
+                p={4} 
+                onClick={handleLogoClick} 
+                cursor="pointer"
+                width={{ base: '6rem', sm: '6rem', md: '8rem', lg: '10rem', xl: '12rem' }}
+            >
+                <Image
+                    src="/binsightlogo.png"
+                    objectFit="contain"
+                    alt="Binsight Logo"
+                    // fallback={<Skeleton 
+                    //     startColor="blue.400" 
+                    //     endColor="blue.900" 
+                    //     fadeDuration={0} 
+                    //     width={{ base: '6rem', sm: '6rem', md: '8rem', lg: '10rem', xl: '12rem' }}
+                    //     height={{ base: '6rem', sm: '6rem', md: '8rem', lg: '10rem', xl: '12rem' }}
+                    //     borderRadius="10px"
+                    // />}
+                />
+            </Box>
+            <Center h="100vh">
+                <VStack spacing={4} align="stretch">
+                    {response && response.status === 'idle' && page === "capture" ? (
+                    <>
+                    <Text fontSize="2xl" fontWeight="bold" textAlign="center">
+                        Ready for eco-action! Position your item in the light blue box when you&apos;re set.
+                    </Text>
+                    <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
+                        {capturedImage ? (
+                            <img src={capturedImage} alt="Captured frame" />
+                        ) : (
+                            <>
+                                {!videoLoaded && (
+                                    <Skeleton 
+                                    startColor="blue.400" 
+                                    endColor="blue.900" 
+                                    fadeDuration={0} 
+                                    w="640px" 
+                                    h="480px" 
+                                    borderRadius="10px"
+                                />
+                                )}
+                                <video
+                                    ref={videoRef}
+                                    style={{ 
+                                        width: '640px', 
+                                        height: '480px', 
+                                        display: videoLoaded ? 'block' : 'none',
+                                        borderRadius: '10px',
+                                        zIndex: 1
+                                    }}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                />
+                                <canvas 
+                                    ref={roiCanvasRef} 
+                                    style={{ 
+                                        position: 'absolute', 
+                                        zIndex: 1, 
+                                        borderRadius: '10px',
+                                    }} 
+                                />
+                                <canvas ref={analysisCanvasRef} style={{ display: 'none' }} />
+                                {videoLoaded && (
+                                <Box 
+                                    position="absolute"
+                                    zIndex={0} 
+                                    width="650px" 
+                                    height="490px" 
+                                    bgColor="blue.500" 
+                                    borderRadius="12px" 
+                                    top="50%" 
+                                    left="50%" 
+                                    transform="translate(-50%, -50%)"
+                                />)}
+                            </>
+                        )}
+                    </Box>
+                    </>
+                    ) : null}
+                    {page === "loading" && (
+                        <Center>
+                        <Spinner 
+                            size='xl'
+                            speed='0.65s'
+                        />
+                        </Center>
                     )}
-                </Box>
-                </>
-                ) : null}
-                {page === "loading" && (
-                    <Center>
-                    <Spinner 
-                        size='xl'
-                        speed='0.65s'
-                    />
-                    </Center>
-                )}
-                {response && response.status === 'success' && response.data && page === "display" ? (
-                    <ClassificationDisplay classificationData={response.data} />
-                ) : null}
-            </VStack>
-        </Center>
+                    {response && response.status === 'success' && response.data && page === "display" ? (
+                        <ClassificationDisplay classificationData={response.data} />
+                    ) : null}
+                </VStack>
+            </Center>
+        </Box>
     );
 }
