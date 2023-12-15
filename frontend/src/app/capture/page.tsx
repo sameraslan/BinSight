@@ -342,7 +342,7 @@ export default function Home() {
                 <VStack spacing={4} align="stretch">
                     {response && response.status === 'idle' && page === "capture" ? (
                     <>
-                    <Text fontSize="4xl" fontWeight="bold" textAlign="center">
+                    <Text color="blue.900" fontSize="4xl" fontWeight="bold" textAlign="center">
                         Ready for eco-action! Position your item in the light blue box when you&apos;re set.
                     </Text>
                     <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
