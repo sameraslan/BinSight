@@ -14,10 +14,10 @@ interface ClassificationData {
 }
 
 const icons: { [key in string]: JSX.Element } = {
-    compost: <MdCompost style={{ fontSize: '3em' }} />,
-    paper: <MdDescription style={{ fontSize: '3em' }} />,
-    recycle: <FaRecycle style={{ fontSize: '3em' }} />,
-    trash: <MdDelete style={{ fontSize: '3em' }} />
+    compost: <MdCompost style={{ fontSize: '20em', color:'#1A365D' }} />,
+    paper: <MdDescription style={{ fontSize: '20em', color:'#1A365D' }} />,
+    recycle: <FaRecycle style={{ fontSize: '20em', color:'#1A365D' }} />,
+    trash: <MdDelete style={{ fontSize: '20em', color:'#1A365D' }} />
 };
 
 export default function Home() {
@@ -27,7 +27,7 @@ export default function Home() {
     const roiCanvasRef = useRef<HTMLCanvasElement>(null);
     const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
     const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
-    const stabilityThreshold: number = 80;
+    const stabilityThreshold: number = 25;
     const stabilityDurationRequired: number = 1500;
     const checkInterval: number = 500;
     const toast = useToast();
@@ -283,17 +283,17 @@ export default function Home() {
         const message = generateInformativeMessage(label, score);
         return (
             <Center>
-                <Box maxW='lg' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
+                <Box maxW='3xl' maxH='3xl' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
                     <Center bg='gray.100' p='4'>
                         {icons[label]}
                     </Center>
                     <Box p='6'>
-                        <Heading size='xl'>{label.toUpperCase()}</Heading>
-                        <Badge mt='1' fontSize='2em' colorScheme='green'>
+                        <Heading color='blue.900' size='4xl'>{label.toUpperCase()}</Heading>
+                        {/* <Badge mt='1' fontSize='2em' colorScheme='green'>
                             {Math.round(score * 100)}% Match
-                        </Badge>
-                        <Text mt='3' fontSize='lg'>{message.main ? message.main : ''}</Text>
-                        {message && <Text mt='2' fontSize='md' fontStyle='italic'>{message.note}</Text>}
+                        </Badge> */}
+                        <Text color='blue.900' mt='3' fontSize='4xl'>{message.main ? message.main : ''}</Text>
+                        {message && <Text color='blue.900' mt='2' fontSize='4xl' fontStyle='italic'>{message.note}</Text>}
                     </Box>
                 </Box>
             </Center>
@@ -342,7 +342,7 @@ export default function Home() {
                 <VStack spacing={4} align="stretch">
                     {response && response.status === 'idle' && page === "capture" ? (
                     <>
-                    <Text fontSize="2xl" fontWeight="bold" textAlign="center">
+                    <Text fontSize="4xl" fontWeight="bold" textAlign="center">
                         Ready for eco-action! Position your item in the light blue box when you&apos;re set.
                     </Text>
                     <Box display="flex" justifyContent="center" alignItems="center" w="full" h="auto" position="relative" p={8}>
