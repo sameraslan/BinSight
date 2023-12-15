@@ -27,8 +27,8 @@ export default function Home() {
     const roiCanvasRef = useRef<HTMLCanvasElement>(null);
     const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
     const intervalIdRef = useRef<NodeJS.Timeout | undefined>(undefined);
-    const stabilityThreshold: number = 15;
-    const stabilityDurationRequired: number = 2500;
+    const stabilityThreshold: number = 80;
+    const stabilityDurationRequired: number = 1500;
     const checkInterval: number = 500;
     const toast = useToast();
     const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
