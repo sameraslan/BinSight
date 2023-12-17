@@ -14,10 +14,10 @@ interface ClassificationData {
 }
 
 const icons: { [key in string]: JSX.Element } = {
-    compost: <MdCompost style={{ fontSize: '20em', color:'#1A365D' }} />,
-    paper: <MdDescription style={{ fontSize: '20em', color:'#1A365D' }} />,
-    recycle: <FaRecycle style={{ fontSize: '20em', color:'#1A365D' }} />,
-    trash: <MdDelete style={{ fontSize: '20em', color:'#1A365D' }} />
+    compost: <MdCompost style={{ fontSize: '10em', color:'#1A365D' }} />,
+    paper: <MdDescription style={{ fontSize: '10em', color:'#1A365D' }} />,
+    recycle: <FaRecycle style={{ fontSize: '10em', color:'#1A365D' }} />,
+    trash: <MdDelete style={{ fontSize: '10em', color:'#1A365D' }} />
 };
 
 export default function Home() {
@@ -45,6 +45,9 @@ export default function Home() {
 
     useEffect(() => {
         if (response && response.status === 'success' && page === "display") {
+            // Reset previousFrameData (may have been the cause of buffering issues?)
+            previousFrameData = null;
+
             const timeoutId = setTimeout(() => {
                 setPage("capture");
                 setResponse({ status: 'idle', data: null })
@@ -186,8 +189,8 @@ export default function Home() {
     };
 
     const messages = {
-        idle: "Ready for eco-action! Position your item in the red box when you're set.",
-        lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view.",
+        idle: "Ready for eco-action! Position your item in the red box when you're ready.",
+        lowConfidence: "Almost there! Try adjusting the item's position or lighting for a clearer view. Remember: when in doubt, trash it.",
         recycle: {
             medium: "Looks like a recyclable item. Check for recycling symbols and numbers!",
             high: "Nicely done! This looks recyclable.",
@@ -195,11 +198,11 @@ export default function Home() {
         },
         trash: {
             medium: "This might be trash. Double-check, especially for hard-to-recycle plastics.",
-            high: "Correct! This belongs in the trash.",
-            note: "Remember: Not all plastics are recyclable. For instance, 'PS' (Polystyrene) should go to trash."
+            high: "Nice! This belongs in the trash.",
+            note: "Remember: Some plastics are not recyclable. For instance, 'PS' (Polystyrene) should go to trash."
         },
         compost: {
-            medium: "Seems compostable. Ensure it's organic matter like food scraps.",
+            medium: "Seems compostable. Ensure if it's organic matter like food scraps.",
             high: "Great! It's suitable for composting.",
             note: "Compost enriches soil. Include food waste and biodegradable products, but avoid plastics."
         },
@@ -219,7 +222,7 @@ export default function Home() {
             if (typeof message === 'object') {
                 // When label points to an object with medium, high, and note properties.
                 if (score < 0.6) {
-                    return { main: messages.lowConfidence, note: '' };
+                    return { main: messages.lowConfidence, note: 'low conf' };
                 } else if (score >= 0.6 && score < 0.8) {
                     return { main: message.medium, note: '' };
                 } else {
@@ -276,26 +279,31 @@ export default function Home() {
         }
     };
     
-    const ClassificationDisplay: React.FC<{ classificationData: ClassificationData }> = ({ classificationData }) => {
+    const ClassificationDisplay: React.FC<{ classificationData: ClassificationData, capturedImageUrl?: string | null }> = ({ classificationData, capturedImageUrl }) => {
         const {label, score} = classificationData;
-
-
         const message = generateInformativeMessage(label, score);
+        const displayLabel = message.note === 'low conf' ? `Maybe: ${label}` : label;
+
         return (
             <Center>
-                <Box maxW='3xl' maxH='3xl' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
-                    <Center bg='gray.100' p='4'>
+                <VStack maxW='3xl' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center' spacing={4}>
+                    <Box p='4' bg='gray.100'>
                         {icons[label]}
-                    </Center>
-                    <Box p='6'>
-                        <Heading color='blue.900' size='4xl'>{label.toUpperCase()}</Heading>
-                        {/* <Badge mt='1' fontSize='2em' colorScheme='green'>
-                            {Math.round(score * 100)}% Match
-                        </Badge> */}
-                        <Text color='blue.900' mt='3' fontSize='4xl'>{message.main ? message.main : ''}</Text>
-                        {message && <Text color='blue.900' mt='2' fontSize='4xl' fontStyle='italic'>{message.note}</Text>}
                     </Box>
-                </Box>
+                    {capturedImageUrl && (
+                        <Image 
+                            src={capturedImageUrl}
+                            alt="Captured item"
+                            objectFit="contain"
+                            maxH="300px" // Adjust size as needed
+                        />
+                    )}
+                    <Box p='6'>
+                        <Heading color='blue.900' size='3xl'>{displayLabel.toUpperCase()}</Heading>
+                        <Text color='blue.900' mt='3' fontSize='3xl'>{message.main ? message.main : ''}</Text>
+                        {message.note !== 'low conf' && message.note && <Text color='blue.900' mt='2' fontSize='3xl' fontStyle='italic'>{message.note}</Text>}
+                    </Box>
+                </VStack>
             </Center>
         );
     };
@@ -408,7 +416,10 @@ export default function Home() {
                         </Center>
                     )}
                     {response && response.status === 'success' && response.data && page === "display" ? (
-                        <ClassificationDisplay classificationData={response.data} />
+                        <ClassificationDisplay 
+                            classificationData={response.data} 
+                            capturedImageUrl={capturedImage} 
+                        />
                     ) : null}
                 </VStack>
             </Center>
