@@ -279,7 +279,7 @@ export default function Home() {
         }
     };
     
-    const ClassificationDisplay: React.FC<{ classificationData: ClassificationData, capturedImageUrl?: string }> = ({ classificationData, capturedImageUrl }) => {
+    const ClassificationDisplay: React.FC<{ classificationData: ClassificationData, capturedImageUrl?: string | null }> = ({ classificationData, capturedImageUrl }) => {
         const {label, score} = classificationData;
         const message = generateInformativeMessage(label, score);
         const displayLabel = message.note === 'low conf' ? `Maybe: ${label}` : label;
