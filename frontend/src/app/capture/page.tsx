@@ -14,10 +14,10 @@ interface ClassificationData {
 }
 
 const icons: { [key in string]: JSX.Element } = {
-    compost: <MdCompost style={{ fontSize: '20em', color:'#1A365D' }} />,
-    paper: <MdDescription style={{ fontSize: '20em', color:'#1A365D' }} />,
-    recycle: <FaRecycle style={{ fontSize: '20em', color:'#1A365D' }} />,
-    trash: <MdDelete style={{ fontSize: '20em', color:'#1A365D' }} />
+    compost: <MdCompost style={{ fontSize: '10em', color:'#1A365D' }} />,
+    paper: <MdDescription style={{ fontSize: '10em', color:'#1A365D' }} />,
+    recycle: <FaRecycle style={{ fontSize: '10em', color:'#1A365D' }} />,
+    trash: <MdDelete style={{ fontSize: '10em', color:'#1A365D' }} />
 };
 
 export default function Home() {
@@ -222,7 +222,7 @@ export default function Home() {
             if (typeof message === 'object') {
                 // When label points to an object with medium, high, and note properties.
                 if (score < 0.6) {
-                    return { main: messages.lowConfidence, note: '' };
+                    return { main: messages.lowConfidence, note: 'low conf' };
                 } else if (score >= 0.6 && score < 0.8) {
                     return { main: message.medium, note: '' };
                 } else {
@@ -282,28 +282,28 @@ export default function Home() {
     const ClassificationDisplay: React.FC<{ classificationData: ClassificationData, capturedImageUrl?: string }> = ({ classificationData, capturedImageUrl }) => {
         const {label, score} = classificationData;
         const message = generateInformativeMessage(label, score);
+        const displayLabel = message.note === 'low conf' ? `Maybe: ${label}` : label;
 
         return (
             <Center>
-                <Box maxW='3xl' maxH='3xl' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center'>
-                    <Center bg='gray.100' p='4'>
+                <VStack maxW='3xl' borderWidth='1px' borderRadius='lg' overflow='hidden' textAlign='center' spacing={4}>
+                    <Box p='4' bg='gray.100'>
                         {icons[label]}
-                    </Center>
-                    {capturedImageUrl ? (
+                    </Box>
+                    {capturedImageUrl && (
                         <Image 
                             src={capturedImageUrl}
                             alt="Captured item"
                             objectFit="contain"
-                            maxH="300px" // Adjust size
-                            p='4'
+                            maxH="300px" // Adjust size as needed
                         />
-                    ): null}
+                    )}
                     <Box p='6'>
-                        <Heading color='blue.900' size='4xl'>{label.toUpperCase()}</Heading>
-                        <Text color='blue.900' mt='3' fontSize='4xl'>{message.main ? message.main : ''}</Text>
-                        {message.note && <Text color='blue.900' mt='2' fontSize='4xl' fontStyle='italic'>{message.note}</Text>}
+                        <Heading color='blue.900' size='3xl'>{displayLabel.toUpperCase()}</Heading>
+                        <Text color='blue.900' mt='3' fontSize='3xl'>{message.main ? message.main : ''}</Text>
+                        {message.note !== 'low conf' && message.note && <Text color='blue.900' mt='2' fontSize='3xl' fontStyle='italic'>{message.note}</Text>}
                     </Box>
-                </Box>
+                </VStack>
             </Center>
         );
     };
