@@ -295,7 +295,7 @@ export default function Home() {
                             src={capturedImageUrl}
                             alt="Captured item"
                             objectFit="contain"
-                            maxH="300px" // Adjust size as needed
+                            maxH="300px"
                         />
                     )}
                     <Box p='6'>
@@ -405,6 +405,9 @@ export default function Home() {
                             </>
                         )}
                     </Box>
+                    <Text color="blue.900" fontSize="3xl" textAlign="center">
+                        Make sure your object is stable for accurate classification.
+                    </Text>
                     </>
                     ) : null}
                     {page === "loading" && (
