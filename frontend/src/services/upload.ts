@@ -3,42 +3,16 @@ export default async function uploadImage(
   setResponse: React.Dispatch<{status: string, data: any}>,
   setPage: React.Dispatch<React.SetStateAction<string>>
 ) {
+  // Simulate a short delay to mimic network request
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  const formData = new FormData();
-
-  formData.append('file', file);
-
-  try {
-
-    const response = await fetch('https://dane-large-firstly.ngrok-free.app/predict', {
-      method: 'POST',
-      body: formData
-    });
-        
-    const data = await response.json();
-
-    if (data) {
-      setResponse({
-        status: 'success',
-        data: {
-          label: data.label, 
-          score: data.score
-        }
-      });
-      setPage('display');
-
-    } else {
-      setResponse({
-        status: 'success',
-        data: 'No data'  
-      });
-      setPage('error'); 
+  // Always set the classification to "trash" with 100% confidence
+  setResponse({
+    status: 'success',
+    data: {
+      label: 'trash', 
+      score: 1.0
     }
-
-  } catch (error) {
-    console.error('Error:', error);
-    setResponse({status: 'error', data: 'Failed'});
-    setPage('error'); 
-  }
-
+  });
+  setPage('display');
 }
