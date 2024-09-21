@@ -7,7 +7,7 @@ BinSight is an AI-driven waste classification system aimed at promoting proper w
    <br>
 </div>
 
-Try out BinSight [here](https://bin-sight.vercel.app/)
+Try out BinSight [here](https://bin-sight.vercel.app/).
 
 ## Installation
 
@@ -67,3 +67,4 @@ BinSight was evaluated through a user study conducted at Johns Hopkins Universit
 - Implementing object detection for improved frame selection and faster processing
 - Deploying motion sensors for energy efficiency and system activation only when necessary
 
+Read our project paper [here](https://github.com/user-attachments/files/17085732/MLSD_FinalReport_BinSight.pdf)
