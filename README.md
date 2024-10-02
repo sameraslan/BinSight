@@ -2,12 +2,13 @@
 
 BinSight is an AI-driven waste classification system aimed at promoting proper waste disposal and recycling. Using real-time visual recognition, the system classifies waste items and provides users with appropriate disposal instructions, making it easier for individuals to make informed recycling decisions. The system was deployed at Johns Hopkins University using Raspberry Pi hardware for on-site, real-time inference.
 
+🧪 Try out BinSight [here](https://bin-sight.vercel.app/).\
+📖 Read our project paper [here](https://github.com/user-attachments/files/17237403/BinSight.pdf).
+
 <div align="center">
    <img src="https://github.com/user-attachments/assets/751854a5-d900-4ca4-8644-9bdd9b3e6980" width="100%">
    <br>
 </div>
-
-Try out BinSight [here](https://bin-sight.vercel.app/).
 
 ## Installation
 
@@ -66,5 +67,3 @@ BinSight was evaluated through a user study conducted at Johns Hopkins Universit
 - Enhancing model performance by curating additional datasets for more accurate classification
 - Implementing object detection for improved frame selection and faster processing
 - Deploying motion sensors for energy efficiency and system activation only when necessary
-
-Read our project paper [here](https://github.com/user-attachments/files/17085732/MLSD_FinalReport_BinSight.pdf)
